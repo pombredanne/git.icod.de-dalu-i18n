@@ -73,3 +73,28 @@ func (i *I18nMiddleware) Middleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx3))
 	})
 }
+
+func (i *I18nMiddleware) MiddlewareFunc(next http.Handler) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		bycookie := false
+		lang := r.URL.Query().Get(i.config.URLParam)
+		rlang := r.Header.Get("Accept-Language")
+		if lang == "" {
+			lc ,e := r.Cookie("lang")
+			if e != nil {
+				lang = ""
+			} else {
+				lang = lc.Value
+				bycookie = true
+			}
+		}
+		if !bycookie {
+			http.SetCookie(w, &http.Cookie{HttpOnly:true, Name: "lang", Value:lang})
+		}
+		ctx0 := context.WithValue(r.Context(), "i18nlang", lang)
+		ctx1 := context.WithValue(ctx0, "i18nrlang", rlang)
+		ctx2 := context.WithValue(ctx1, "i18ndlang", i.config.DefaultLanguage)
+		ctx3 := context.WithValue(ctx2, "i18nTfunc", i.config.bundle.MustTfunc(lang, rlang, i.config.DefaultLanguage))
+		next.ServeHTTP(w, r.WithContext(ctx3))
+	})
+}
