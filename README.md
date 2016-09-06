@@ -8,7 +8,7 @@ Go 1.7 for context-aware http Package
 
 ## License
 
-BSD2
+modified BSD2
 
 ## Issues
 
