@@ -74,7 +74,7 @@ func (i *I18nMiddleware) Middleware(next http.Handler) http.Handler {
 	})
 }
 
-func (i *I18nMiddleware) MiddlewareFunc(next http.Handler) http.HandlerFunc {
+func (i *I18nMiddleware) MiddlewareFunc(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		bycookie := false
 		lang := r.URL.Query().Get(i.config.URLParam)
