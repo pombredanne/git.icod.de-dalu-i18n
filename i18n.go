@@ -1,12 +1,14 @@
 package i18n
 
 import (
-	"log"
-	"github.com/nicksnyder/go-i18n/i18n/bundle"
-	"net/http"
 	"context"
+	"log"
+	"net/http"
+
+	"github.com/nicksnyder/go-i18n/i18n/bundle"
 )
 
+// Config is the configuration struct of the middleware
 type Config struct {
 	DefaultLanguage string
 	Files           []string          // files to load
@@ -16,10 +18,12 @@ type Config struct {
 	bundle          *bundle.Bundle
 }
 
+// I18nMiddleware is the middleware that encapsulates the config
 type I18nMiddleware struct {
 	config Config
 }
 
+// New creates a new Middleware. It requires a Config parameter.
 func New(c Config) *I18nMiddleware {
 	if c.DefaultLanguage == "" {
 		log.Fatal("i18n: No default language set")
@@ -49,13 +53,14 @@ func New(c Config) *I18nMiddleware {
 	return &I18nMiddleware{config: c}
 }
 
+// Middleware is a http.Handler compatible middleware
 func (i *I18nMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		bycookie := false
 		lang := r.URL.Query().Get(i.config.URLParam)
 		rlang := r.Header.Get("Accept-Language")
 		if lang == "" {
-			lc ,e := r.Cookie("lang")
+			lc, e := r.Cookie("lang")
 			if e != nil {
 				lang = ""
 			} else {
@@ -64,8 +69,9 @@ func (i *I18nMiddleware) Middleware(next http.Handler) http.Handler {
 			}
 		}
 		if !bycookie {
-			http.SetCookie(w, &http.Cookie{HttpOnly:true, Name: "lang", Value:lang})
+			http.SetCookie(w, &http.Cookie{HttpOnly: true, Name: "lang", Value: lang})
 		}
+
 		ctx0 := context.WithValue(r.Context(), "i18nlang", lang)
 		ctx1 := context.WithValue(ctx0, "i18nrlang", rlang)
 		ctx2 := context.WithValue(ctx1, "i18ndlang", i.config.DefaultLanguage)
@@ -74,13 +80,14 @@ func (i *I18nMiddleware) Middleware(next http.Handler) http.Handler {
 	})
 }
 
+// MiddlewareFunc is a http.HandlerFunc compatible middleware
 func (i *I18nMiddleware) MiddlewareFunc(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		bycookie := false
 		lang := r.URL.Query().Get(i.config.URLParam)
 		rlang := r.Header.Get("Accept-Language")
 		if lang == "" {
-			lc ,e := r.Cookie("lang")
+			lc, e := r.Cookie("lang")
 			if e != nil {
 				lang = ""
 			} else {
@@ -89,7 +96,7 @@ func (i *I18nMiddleware) MiddlewareFunc(next http.HandlerFunc) http.HandlerFunc 
 			}
 		}
 		if !bycookie {
-			http.SetCookie(w, &http.Cookie{HttpOnly:true, Name: "lang", Value:lang})
+			http.SetCookie(w, &http.Cookie{HttpOnly: true, Name: "lang", Value: lang})
 		}
 		ctx0 := context.WithValue(r.Context(), "i18nlang", lang)
 		ctx1 := context.WithValue(ctx0, "i18nrlang", rlang)
